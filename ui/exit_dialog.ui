@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>exit_dialog</class>
+ <widget class="QDialog" name="exit_dialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>940</width>
+    <height>640</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>종료</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">background-color:'#3c4043';</string>
+  </property>
+  <widget class="QPushButton" name="exit_button">
+   <property name="geometry">
+    <rect>
+     <x>400</x>
+     <y>560</y>
+     <width>140</width>
+     <height>50</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>17</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="cursor">
+    <cursorShape>PointingHandCursor</cursorShape>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">border-radius:20px;
+color: white;
+	background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0.857143, y2:0.857955, stop:0 #84E9FF , stop:1 #C284FF);
+
+</string>
+   </property>
+   <property name="text">
+    <string>종료하기</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="ex_name">
+   <property name="geometry">
+    <rect>
+     <x>180</x>
+     <y>50</y>
+     <width>291</width>
+     <height>391</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>16</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">color:'black'; background-color:&quot;white&quot;;
+border-top-left-radius: 9px;
+border-bottom-left-radius: 9px;
+padding:5px;</string>
+   </property>
+   <property name="text">
+    <string>운동 이름</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="ex_score">
+   <property name="geometry">
+    <rect>
+     <x>470</x>
+     <y>50</y>
+     <width>291</width>
+     <height>391</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>18</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">color:'black'; background-color:&quot;white&quot;;
+border-top-right-radius:9px;
+border-bottom-right-radius:9px;
+padding:5px;</string>
+   </property>
+   <property name="text">
+    <string>정확도</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label">
+   <property name="geometry">
+    <rect>
+     <x>180</x>
+     <y>460</y>
+     <width>291</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>18</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">color:'black'; background-color:&quot;white&quot;;
+border-top-left-radius: 9px;
+border-bottom-left-radius: 9px;
+padding:5px;</string>
+   </property>
+   <property name="text">
+    <string>최종 정확도</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="result_score">
+   <property name="geometry">
+    <rect>
+     <x>470</x>
+     <y>460</y>
+     <width>291</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>18</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">color:'black'; background-color:&quot;white&quot;;
+border-top-right-radius:9px;
+border-bottom-right-radius:9px;
+padding:5px;</string>
+   </property>
+   <property name="text">
+    <string>점수~</string>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
