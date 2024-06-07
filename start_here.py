@@ -41,12 +41,10 @@ exit_value = 0
 exercise_keypoint_list = []
 
 
-def process(exercise_keypoint_q: Queue(), user_keypoint_q: Queue(), share_score: Value, share_replay: Value,
-            share_next: Value):
+def process(exercise_keypoint_q: Queue(), user_keypoint_q: Queue(), share_score: Value, share_replay: Value, share_next: Value):
     scoreList = []  # 점수의 경향을 보는 list
     while True:
         if exercise_keypoint_q.empty() or user_keypoint_q.empty():  # 둘중 하나의 q라도 비어있으면 비교를 진행하지 않는다.
-            # print('queue가 비어있습니다.')
             continue
 
         user_keypoint_list = user_keypoint_q.get()
@@ -58,61 +56,44 @@ def process(exercise_keypoint_q: Queue(), user_keypoint_q: Queue(), share_score:
         if user_keypoint_list.shape[0] >= 20 and exercise_keypoint_list.shape[0] > 0:
             similarity = cosine_similarity(exercise_keypoint_list[0: 20].reshape(1, -1),user_keypoint_list[0: 20].reshape(1, -1)).squeeze()  # similarity 계산
             if similarity < 0.95:  # 동작의 앞 부분이 0.95를 넘지 못한다면
-                share_replay.value = 1  # 사용자 영상 keypoint초기화후 재시작
+                share_replay.value = 1  # 사용자 영상 keypoint 초기화후 재시작
                 scoreList = []
             else:
                 if 20 < user_keypoint_list.shape[0] < exercise_keypoint_list.shape[0] + 50 and share_replay.value != 1 and share_next.value != 1:
                     x = dtw_ndim.distance(user_keypoint_list, exercise_keypoint_list)
                     x = (max(((x - 15) / 12), 0) - (1 / 2)) * 7
                     x = 1 / (1 + np.exp(x))
-                    score = int(x * 100)
-                    # score = int(100 - min(100, x))  # 점수 계산
-                    share_score.value = score  # 점수를 다른 프로세스도 볼 수 있도록 업데이트 why? --> setScore하는 부분은 User Class에서 진행되기 때문 !
+                    score = int(x * 100)  # 점수 계산
+                    share_score.value = score  # 점수를 다른 프로세스도 볼 수 있도록 업데이트 why? --> set_score하는 부분은 User Class에서 진행되기 때문 !
                     
                     scoreList.append(score)
 
                     if (exercise_keypoint_list.shape[0] / 1.3 < user_keypoint_list.shape[0] < exercise_keypoint_list.shape[0] + 50) and score < 10:
+                        #IO process로부터 입력된 사용자 영상의 길이가 영상 길이와 비교했을 때 충분하고, 점수가 10점 이하일 때 지금까지 들어왔던 사용자 영상 초기화
                         scoreList = []  # 점수 기록 초기화
                         share_replay.value = 1  # 사용자 영상 재 수집 요청
-                        print('score 10')
-                        print('exercise_shape:', exercise_keypoint_list.shape)
-                        print('user_shape:', user_keypoint_list.shape)
                         
-                    elif exercise_keypoint_list.shape[0] / 1.5 < user_keypoint_list.shape[0] and np.array(scoreList).mean() >= score + 5:  # 점수가 이전 점수들에 비해 떨어지는 경향을 보이는 경우
+                    elif exercise_keypoint_list.shape[0] / 1.5 < user_keypoint_list.shape[0] and np.array(scoreList).mean() >= score + 5:
+                        #IO process로부터 입력된 사용자 영상의 길이가 영상 길이와 비교했을 때 충분하고, 점수가 이전 점수들에 비해 떨어지는 경향을 보이는 경우 사용자 영상 초기화
                         scoreList = []  # 점수 기록 초기화
                         share_replay.value = 1  # 재시작
-                        print('score down')
-                        print('exercise_shape:', exercise_keypoint_list.shape)
-                        print('user_shape:', user_keypoint_list.shape)
 
                     elif score >= 80 and (exercise_keypoint_list.shape[0] / 1.3 < user_keypoint_list.shape[0] < exercise_keypoint_list.shape[0] * 1.3):
+                        #IO process로부터 입력된 사용자 영상의 길이가 영상 길이와 비교했을 때 충분하고, 점수가 80점 이상일 때 다음영상으로 넘어감
                         scoreList = []  # 점수 기록 초기화
                         share_next.value = 1  # 사용자 영상 재 수집 및 다음 영상 요청
-                        print('score 80')
-                        print('exercise_shape:', exercise_keypoint_list.shape)
-                        print('user_shape:', user_keypoint_list.shape)
-
-                    # elif exercise_keypoint_list.shape[0] / 1.5 < user_keypoint_list.shape[0] and np.array(scoreList).mean() > score :  # 점수가 이전 점수들에 비해 떨어지는 경향을 보이는 경우
-                    #     scoreList = []  # 점수 기록 초기화
-                    #     share_replay.value = 1  # 재시작
-                    #     print('score down')
-                    #     print('exercise_shape:', exercise_keypoint_list.shape)
-                    #     print('user_shape:', user_keypoint_list.shape)
 
         if user_keypoint_list.shape[0] >= exercise_keypoint_list.shape[0] + 50:  # 사용자가 너무 느리게 따라하는 경우
             scoreList = []
             share_replay.value = 1
-            print('list long')
-            print('exercise_shape:', exercise_keypoint_list.shape)
-            print('user_shape:', user_keypoint_list.shape)
 
 class Video(QThread):
-    update_video_frame = pyqtSignal(QtGui.QImage)
-    setLabel = pyqtSignal(str, str)
-    showDlg = pyqtSignal(str, str, str, str)
-    exitDlg = pyqtSignal(str, str)
-    kill_thread = pyqtSignal()
-    setExStartText = pyqtSignal(int)
+    update_video_frame_signal = pyqtSignal(QtGui.QImage)
+    set_label_signal = pyqtSignal(str, str)
+    show_dlg_signal = pyqtSignal(str, str, str, str)
+    exit_dlg_signal = pyqtSignal(str, str)
+    kill_thread_signal = pyqtSignal()
+    set_start_text_signal = pyqtSignal(int)
 
     def __init__(self):
         super().__init__()
@@ -131,39 +112,37 @@ class Video(QThread):
             exercise_name = exercise.split('_')[1]  # name
 
             # 운동 이름과 난이도 setText 추가
-            self.setLabel.emit(exercise_name, exercise_level)
+            self.set_label_signal.emit(exercise_name, exercise_level)
 
             pickle_dir = self.pickle_dir + exercise_name + '.pickle'  # Find pickleFile dir
 
-            exercise_keypoint_list = load(lookupfile_path=pickle_dir,
-                                          activity_name=exercise_name).array()  # pickle file loaded
+            exercise_keypoint_list = load(lookupfile_path=pickle_dir, activity_name=exercise_name).array()  # pickle file loaded
 
             cap = cv2.VideoCapture(file_name)
             while cap.isOpened():
                 if score_value.value == 0: # 0점일 때 '운동을 시작해주세요' 띄워야한다~
-                    self.setExStartText.emit(1)
+                    self.set_start_text_signal.emit(1)
                 else:
-                    self.setExStartText.emit(0)
+                    self.set_start_text_signal.emit(0)
                 
                 if exit_value == 1:  # ESC나 종료 버튼 클릭
-                    self.exitDlg.emit(str(0), str(0))
+                    self.exit_dlg_signal.emit(str(0), str(0))
                     time.sleep(100)
-                    #self.kill_thread.emit()
+                    #self.kill_thread_signal.emit()
 
-                if cap.get(cv2.CAP_PROP_POS_FRAMES) == cap.get(
-                        cv2.CAP_PROP_FRAME_COUNT):  # 영상의 현재 프레임이 영상의 최대 프레임(끝)과 같을때, 즉 영상의 끝일 때
+                if cap.get(cv2.CAP_PROP_POS_FRAMES) == cap.get(cv2.CAP_PROP_FRAME_COUNT):  # 영상의 현재 프레임이 영상의 최대 프레임(끝)과 같을때, 즉 영상의 끝일 때
                     if len(exercise_keypoint_list) == 0:  # 영상 list안이 비어있을 때  User Class에서 exercise_keypoint_list를 비워버렸을 때 다음 영상으로 넘어가야한다.
                         last_score = str(score_value.value)
                         score_value.value = 0  # Score를 0으로 setting
                         print('next')
                         print(counter)
                         if counter == len(all_file):
-                            self.exitDlg.emit(all_file[counter-1].split('/')[2].split('_')[1], last_score)
+                            self.exit_dlg_signal.emit(all_file[counter-1].split('/')[2].split('_')[1], last_score)
                             print("end")
                             time.sleep(100)
-                            # self.kill_thread.emit()
+                            #self.kill_thread_signal.emit()
                         else:
-                            self.showDlg.emit(all_file[counter].split('/')[2].split('_')[1], exercise_level, last_score, all_file[counter-1].split('/')[2].split('_')[1])
+                            self.show_dlg_signal.emit(all_file[counter].split('/')[2].split('_')[1], exercise_level, last_score, all_file[counter-1].split('/')[2].split('_')[1])
                         time.sleep(3)
                         next_video_value.value = 0
                         break
@@ -183,15 +162,15 @@ class Video(QThread):
 
                 h, w, c = image.shape  # height, weight, channel
                 qImg = QImage(image.data, w, h, w * c, QImage.Format_RGB888)
-                self.update_video_frame.emit(qImg)  # update video frame
+                self.update_video_frame_signal.emit(qImg)  # update video frame
 
             cap.release()  # free memory
 
 
 class User(QThread):
-    update_user_frame = pyqtSignal(QtGui.QImage)
-    setScore = pyqtSignal(str)
-    setCamText = pyqtSignal()
+    update_user_frame_signal = pyqtSignal(QtGui.QImage)
+    set_score_signal = pyqtSignal(str)
+    cam_not_open_signal = pyqtSignal()
 
     def __init__(self):
         super().__init__()
@@ -216,19 +195,18 @@ class User(QThread):
                     status, frame = cam.read()  # 카메라의 상태 및 프레임 받아옴, 정상 작동일 경우 status = True
 
                     if status:
-                        self.setScore.emit(str(score_value.value))  # score 업데이트
+                        self.set_score_signal.emit(str(score_value.value))  # score 업데이트
                         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # 색상 공간 변환 함수
                         results = pose.process(frame)
                         frame.flags.writeable = True
-                        mp_drawing.draw_landmarks(frame, results.pose_landmarks, mp_pose.POSE_CONNECTIONS,
-                                                  landmark_drawing_spec=drawing_spec)
+                        mp_drawing.draw_landmarks(frame, results.pose_landmarks, mp_pose.POSE_CONNECTIONS, landmark_drawing_spec=drawing_spec)
 
                         frame = cv2.resize(frame, dsize=(800, 900), interpolation=cv2.INTER_CUBIC)
                         frame = cv2.flip(frame, 1)  # 양수: 좌우 대칭
 
                         h, w, c = frame.shape  # height, weight, channel
                         qImg = QImage(frame.data, w, h, w * c, QImage.Format_RGB888)
-                        self.update_user_frame.emit(qImg)
+                        self.update_user_frame_signal.emit(qImg)
 
                         if replay_value.value >= 1 or next_video_value.value >= 1:  # replay, next 변수가 변경되어 있을 땐 keypoint 를 queue에 넣지 않는다
                             if replay_value.value >= 1:  # replay_value가 1이라면 list를 처음부터 다시 추출한다.
@@ -262,8 +240,7 @@ class User(QThread):
                                 score_value.value = 0
                                 user_keypoint_list = []
 
-                            if np.array(user_keypoint_list).shape[0] >= 30 and np.array(exercise_keypoint_list).shape[
-                                0] > 0:  # 둘다 길이가 일정 이상일 때
+                            if np.array(user_keypoint_list).shape[0] >= 30 and np.array(exercise_keypoint_list).shape[0] > 0:  # 둘다 길이가 일정 이상일 때
                                 if user_queue.qsize() == 0 and exercise_queue.qsize() == 0:
                                     user_queue.put(np.array(user_keypoint_list))  # 프로세스간 공유 자원 큐에 list를 넣는다.
                                     exercise_queue.put(np.array(exercise_keypoint_list))
@@ -274,8 +251,7 @@ class User(QThread):
                             score_value.value = 0
 
                     else:
-                        print("cannot read frame")
-                        self.setCamText.emit()
+                        self.cam_not_open_signal.emit()
                         break
 
                 cam.release()  # free memory
@@ -287,8 +263,8 @@ class Window(QMainWindow, form_class):
     score_list = []
 
     def __init__(self):
-        self.dlg = DialogWindow()
-        self.eDlg = ExitDialogWindow()
+        self.dlg_window = DialogWindow()
+        self.exit_dlg_window = ExitDialogWindow()
         global exercise_queue
         global user_queue
         global score_value
@@ -299,77 +275,79 @@ class Window(QMainWindow, form_class):
         self.setupUi(self)
         self.setWindowFlag(Qt.FramelessWindowHint)  # 상단바 제거
         self.show()
-        # user cam thread 생성
-        self.user_th = User()
-        self.user_th.update_user_frame.connect(self.update_user_frame)
-        self.user_th.setScore.connect(self.setScore)
-        self.user_th.setCamText.connect(self.setCamText)
-        self.user_th.start()
 
         # exercise video thread 생성
         self.ex_th = Video()
-        self.ex_th.update_video_frame.connect(self.update_video_frame)
-        self.ex_th.setLabel.connect(self.setLabel)
-        self.ex_th.showDlg.connect(self.displayDialog)
-        self.ex_th.exitDlg.connect(self.ExitDlg)
-        self.ex_th.kill_thread.connect(self.kill_thread)
-        self.ex_th.setExStartText.connect(self.setExStartText)
+        self.ex_th.update_video_frame_signal.connect(self.update_video_frame_slot)
+        self.ex_th.set_label_signal.connect(self.set_label_slot)
+        self.ex_th.show_dlg_signal.connect(self.show_dlg_slot)
+        self.ex_th.exit_dlg_signal.connect(self.exit_dlg_slot)
+        self.ex_th.kill_thread_signal.connect(self.kill_thread)
+        self.ex_th.set_start_text_signal.connect(self.set_start_text_slot)
         self.ex_th.start()
+
+        # user cam thread 생성
+        self.user_th = User()
+        self.user_th.update_user_frame_signal.connect(self.update_user_frame_slot)
+        self.user_th.set_score_signal.connect(self.set_score_slot)
+        self.user_th.cam_not_open_signal.connect(self.cam_not_open_slot)
+        self.user_th.start()        
 
         # 버튼 클릭 이벤트 함수 연결 - 종료하기
         self.exit_button.clicked.connect(self.exit)
-        self.eDlg.exit_button.clicked.connect(self.kill_thread)
-        self.p = Process(target=process, args=(exercise_queue, user_queue, score_value, replay_value, next_video_value))
-        self.p.start()
+        self.exit_dlg_window.exit_button.clicked.connect(self.kill_thread)
+        self.proc = Process(target=process, args=(exercise_queue, user_queue, score_value, replay_value, next_video_value))
+        self.proc.start()
 
     def exit(self):
         global exit_value
         exit_value = 1
 
     @pyqtSlot(str, str)
-    def setLabel(self, name, level):
+    def set_label_slot(self, name, level):
         self.exercise_name.setText(name)
         self.exercise_level.setText(level)
     
     @pyqtSlot(int)
-    def setExStartText(self, isStart):
+    def set_start_text_slot(self, isStart):
         if isStart:
-            self.label_3.setText("운동을 시작해주세요")
-            self.label_3.setStyleSheet("background-color : white;" 
+            self.exercise_start_text.setText("운동을 시작해주세요")
+            self.exercise_start_text.setStyleSheet("background-color : white;" 
                                        "color:black;"
                                        "font-weight:600;"
                                        "border-radius:20px")
         else:
-            self.label_3.setText("운동중입니다")
-            self.label_3.setStyleSheet("background-color : #3c4043;" 
+            self.exercise_start_text.setText("운동중입니다")
+            self.exercise_start_text.setStyleSheet("background-color : #3c4043;" 
                                        "color:white;")
         
     
     @pyqtSlot(str)
-    def setScore(self, score):
+    def set_score_slot(self, score):
         self.exercise_score.setText(score)
 
     @pyqtSlot(QImage)
-    def update_user_frame(self, image):
+    def update_user_frame_slot(self, image):
         self.user_cam.setPixmap(QPixmap.fromImage(image))
 
     @pyqtSlot()
-    def setCamText(self):
+    def cam_not_open_slot(self):
         self.user_cam.setText("카메라가 연결되어 있지 않습니다.")
 
     @pyqtSlot(QImage)
-    def update_video_frame(self, image):
+    def update_video_frame_slot(self, image):
         self.exercise_cam.setPixmap(QPixmap.fromImage(image))
 
     @pyqtSlot()
-    def showDlg(self):
-        self.dlg = DialogWindow()
+    def show_dlg(self):
+        self.dlg_window = DialogWindow()
 
+    # @pyqtSlot()
     def kill_thread(self):
         self.user_th.quit()  # thread 종료
         self.ex_th.quit()
-        self.p.terminate()
-        self.eDlg.eDlgClose()
+        self.proc.terminate()
+        self.exit_dlg_window.exit_dlg_window_close()
         self.close()
         exit(0)
 
@@ -382,42 +360,24 @@ class Window(QMainWindow, form_class):
             next_video_value.value = 1
 
     @pyqtSlot(str, str, str, str)
-    def displayDialog(self, ex_name, ex_level, ex_score, cur_ex_name):
+    def show_dlg_slot(self, ex_name, ex_level, ex_score, cur_ex_name):
         self.counter += 1
         self.score_list.append(float(ex_score))
-        self.eDlg.addText(cur_ex_name, ex_score)
-        self.dlg.setDialogText(ex_name, ex_level, ex_score)
-        self.dlg.show()
-        self.dlg.startTimer()
+        self.exit_dlg_window.addText(cur_ex_name, ex_score)
+        self.dlg_window.set_dialog_text(ex_name, ex_level, ex_score)
+        self.dlg_window.show()
+        self.dlg_window.start_timer()
 
     @pyqtSlot(str, str)
-    def ExitDlg(self, last_exercise, last_score):
-        if last_exercise != "0" or last_score != "0":  # 마지막 운동 영상일 때
+    def exit_dlg_slot(self, last_exercise, last_score):
+        if self.counter == 0:
+            self.exit_dlg_window.addText("진행한 운동 없음", str(0))
+        else:
             self.score_list.append(float(last_score))
             self.counter += 1
-            self.eDlg.addText(last_exercise, last_score)
-        if self.counter == 0:
-            self.eDlg.addText("진행한 운동 없음", str(0))
-        else:
-            self.eDlg.setResultScore(round((sum(self.score_list)/self.counter), 2))
-        self.eDlg.show()
-
-    # MOUSE Click drag EVENT function
-    def mousePressEvent(self, event):
-        if event.button() == Qt.LeftButton:
-            self.m_flag = True
-            self.m_Position = event.globalPos() - self.pos()  # Get the position of the mouse relative to the window
-            event.accept()
-            self.setCursor(QCursor(Qt.OpenHandCursor))  # Change mouse icon
-
-    def mouseMoveEvent(self, QMouseEvent):
-        if Qt.LeftButton and self.m_flag:
-            self.move(QMouseEvent.globalPos() - self.m_Position)  # Change window position
-            QMouseEvent.accept()
-
-    def mouseReleaseEvent(self, QMouseEvent):
-        self.m_flag = False
-        self.setCursor(QCursor(Qt.ArrowCursor))
+            self.exit_dlg_window.addText(last_exercise, last_score)
+            self.exit_dlg_window.set_result_score(round((sum(self.score_list)/self.counter), 2))
+        self.exit_dlg_window.show()
 
 
 class startWindow(QWidget, form_start):
@@ -442,48 +402,46 @@ class startWindow(QWidget, form_start):
 
 
 class DialogWindow(QDialog):
-
     def __init__(self):  # 부모 window 설정
         super(DialogWindow, self).__init__()
         self.sec = 3
         dialog_ui = 'ui/next_video_dialog.ui'
         uic.loadUi(dialog_ui, self)
 
-        self.myTimer = QTimer(self)
-        self.myTimer.timeout.connect(self.timerTimeout)
+        self.my_timer = QTimer(self)
+        self.my_timer.timeout.connect(self.timer_timeout)
         self.second.setText(str(self.sec))
         self.center()
 
-    # 통과한 레벨 출력
-    def setLevelText(self, level):
-        self.level.setText(level)
-
     # 평균 정확도 출력
-    def setAverageScore(self, score):
+    def set_average_score(self, score):
         self.avg_score.setText(score)
 
+    # 통과한 레벨 출력
+    def set_level_text(self, level):
+        self.level.setText(level)    
+
     # 다음 운동 이름 출력
-    def setNextExName(self, name):
+    def set_next_exercise_name(self, name):
         self.next_ex.setText(name)
 
-    def startTimer(self):
-        self.myTimer.setInterval(1000)
-        self.myTimer.start()  # 1초 마다 timerTimeout 함수 실행
+    def start_timer(self):
+        self.my_timer.setInterval(1000)
+        self.my_timer.start()  # 1초 마다 timer_timeout 함수 실행
 
-    def timerTimeout(self):
+    def timer_timeout(self):
         self.sec -= 1
         self.second.setText(str(self.sec))  # 몇 초 남았는지 set
         if self.sec == 0:
-            self.myTimer.stop()
+            self.my_timer.stop()
             self.sec = 3
             self.second.setText(str(self.sec))
             self.close()
 
-    def setDialogText(self, ex_name, level, score):
-        self.setAverageScore(f":  {score}")
-        self.setLevelText(f":  {level}")
-        self.setNextExName(f":  {ex_name}")
-
+    def set_dialog_text(self, ex_name, level, score):
+        self.set_average_score(f":  {score}")
+        self.set_level_text(f":  {level}")
+        self.set_next_exercise_name(f":  {ex_name}")
 
     def center(self):
         qr = self.frameGeometry()
@@ -493,8 +451,9 @@ class DialogWindow(QDialog):
 
 
 class ExitDialogWindow(QDialog):
-    scoreText = ""
-    exNameText =""
+    result_score = ""
+    result_ex_name = ""
+
     def __init__(self):
         super(ExitDialogWindow, self).__init__()
         dialog_ui = 'ui/exit_dialog.ui'
@@ -508,18 +467,18 @@ class ExitDialogWindow(QDialog):
         self.move(qr.topLeft())
 
     def addText(self, ex_name, ex_score):
-        self.exNameText += ex_name + '\n\n'
-        self.scoreText += ex_score + '\n\n'
-        self.setExitText()
+        self.result_ex_name += ex_name + '\n\n'
+        self.result_score += ex_score + '\n\n'
+        self.set_exit_text()
 
-    def setExitText(self):
-        self.ex_name.setText(self.exNameText)
-        self.ex_score.setText(self.scoreText)
+    def set_exit_text(self):
+        self.ex_name.setText(self.result_ex_name)
+        self.ex_score.setText(self.result_score)
 
-    def setResultScore(self, result):
+    def set_result_score(self, result):
         self.result_score.setText(str(result))
 
-    def eDlgClose(self):
+    def exit_dlg_window_close(self):
         self.close()
 
 if __name__ == "__main__":
@@ -527,10 +486,8 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
 
     # Window Class의 인스턴스 생성
-    # myWindow = Window()
     startWindow = startWindow()
     startWindow.show()
-    # myWindow.show()
 
     # 프로그램을 이벤트루프로 진입시키는(프로그램을 작동시키는) 코드
     sys.exit(app.exec_())
