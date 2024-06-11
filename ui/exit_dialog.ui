@@ -46,7 +46,7 @@ color: white;
     <string>종료하기</string>
    </property>
   </widget>
-  <widget class="QLabel" name="ex_name">
+  <widget class="QLabel" name="result_name_list">
    <property name="geometry">
     <rect>
      <x>180</x>
@@ -73,7 +73,7 @@ padding:5px;</string>
     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
    </property>
   </widget>
-  <widget class="QLabel" name="ex_score">
+  <widget class="QLabel" name="result_score_list">
    <property name="geometry">
     <rect>
      <x>470</x>
@@ -100,7 +100,7 @@ padding:5px;</string>
     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
    </property>
   </widget>
-  <widget class="QLabel" name="label">
+  <widget class="QLabel" name="result_level">
    <property name="geometry">
     <rect>
      <x>180</x>
@@ -145,7 +145,7 @@ border-bottom-right-radius:9px;
 padding:5px;</string>
    </property>
    <property name="text">
-    <string>점수~</string>
+    <string/>
    </property>
   </widget>
  </widget>

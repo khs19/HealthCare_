@@ -338,11 +338,11 @@ class Window(QMainWindow, form_class):
         self.exercise_cam.setPixmap(QPixmap.fromImage(image))
 
     @pyqtSlot(str, str, str, str)
-    def show_dlg_slot(self, next_ex_name, passed_ex_level, passed_ex_score, passed_ex_name):
+    def show_dlg_slot(self, ex_name, ex_level, ex_score, cur_ex_name):
         self.counter += 1
-        self.score_list.append(float(passed_ex_score))
-        self.exit_dlg_window.addText(passed_ex_name, passed_ex_score)
-        self.dlg_window.set_dialog_text(passed_ex_level, passed_ex_score, next_ex_name)
+        self.score_list.append(float(ex_score))
+        self.exit_dlg_window.addText(cur_ex_name, ex_score)
+        self.dlg_window.set_dialog_text(ex_name, ex_level, ex_score)
         self.dlg_window.show()
         self.dlg_window.start_timer()
 
@@ -354,7 +354,6 @@ class Window(QMainWindow, form_class):
             self.score_list.append(float(last_score))
             self.counter += 1
             self.exit_dlg_window.addText(last_exercise, last_score)
-            self.exit_dlg_window.set_exit_text()
             self.exit_dlg_window.set_result_score(round((sum(self.score_list)/self.counter), 2))
         self.exit_dlg_window.show()
 
@@ -398,10 +397,10 @@ class startWindow(QWidget, form_start):
 class DialogWindow(QDialog):
     def __init__(self): 
         super().__init__()
+        self.sec = 3
         dialog_ui = 'ui/next_video_dialog.ui'
         uic.loadUi(dialog_ui, self)
 
-        self.sec = 3
         self.my_timer = QTimer(self)
         self.my_timer.timeout.connect(self.timer_timeout)
         self.timer_second.setText(str(self.sec))
@@ -420,13 +419,13 @@ class DialogWindow(QDialog):
             self.timer_second.setText(str(self.sec))
             self.close()
 
-    def set_dialog_text(self, level, score, next_ex_name):
+    def set_dialog_text(self, ex_name, level, score):
         # 통과한 레벨 출력
         self.passed_level.setText(f":  {level}")
         # 평균 정확도 출력
         self.passed_score.setText(f":  {score}")
         # 다음 운동 이름 출력
-        self.next_exercise.setText(f":  {next_ex_name}")
+        self.next_exercise.setText(f":  {ex_name}")
 
     def center(self):
         qr = self.frameGeometry()
@@ -436,13 +435,13 @@ class DialogWindow(QDialog):
 
 
 class ExitDialogWindow(QDialog):
+    result_score = ""
+    result_ex_name = ""
+
     def __init__(self):
         super().__init__()
         dialog_ui = 'ui/exit_dialog.ui'
         uic.loadUi(dialog_ui, self)
-
-        self.exercise_name_list = ""
-        self.exercise_score_list = ""
         self.center()
 
     def center(self):
@@ -452,12 +451,13 @@ class ExitDialogWindow(QDialog):
         self.move(qr.topLeft())
 
     def addText(self, ex_name, ex_score):
-        self.exercise_name_list += ex_name + '\n\n'
-        self.exercise_score_list += ex_score + '\n\n'
+        self.result_ex_name += ex_name + '\n\n'
+        self.result_score += ex_score + '\n\n'
+        self.set_exit_text()
 
     def set_exit_text(self):
-        self.result_name_list.setText(self.exercise_name_list)
-        self.result_score_list.setText(self.exercise_score_list)
+        self.ex_name.setText(self.result_ex_name)
+        self.ex_score.setText(self.result_score)
 
     def set_result_score(self, result):
         self.result_score.setText(str(result))

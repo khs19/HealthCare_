@@ -75,7 +75,7 @@ border-bottom-left-radius: 9px;</string>
     <number>-13</number>
    </property>
   </widget>
-  <widget class="QLabel" name="level">
+  <widget class="QLabel" name="passed_level">
    <property name="geometry">
     <rect>
      <x>423</x>
@@ -181,7 +181,7 @@ border-bottom-left-radius: 9px;</string>
     <string> 다음운동</string>
    </property>
   </widget>
-  <widget class="QLabel" name="second">
+  <widget class="QLabel" name="timer_second">
    <property name="geometry">
     <rect>
      <x>300</x>
@@ -206,7 +206,7 @@ border-bottom-left-radius: 9px;</string>
     <number>6</number>
    </property>
    <property name="text">
-    <string>&quot;&quot;</string>
+    <string>0</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignCenter</set>
@@ -242,7 +242,7 @@ border-bottom-left-radius: 9px;</string>
     <string> 평균 정확도 </string>
    </property>
   </widget>
-  <widget class="QLabel" name="avg_score">
+  <widget class="QLabel" name="passed_score">
    <property name="geometry">
     <rect>
      <x>423</x>
@@ -300,7 +300,7 @@ border-bottom-right-radius:9px;</string>
     <string> 초 뒤에 진행합니다. </string>
    </property>
   </widget>
-  <widget class="QLabel" name="next_ex">
+  <widget class="QLabel" name="next_exercise">
    <property name="geometry">
     <rect>
      <x>423</x>
