@@ -327,15 +327,15 @@ class Window(QMainWindow, form_class):
 
     @pyqtSlot(QImage)
     def update_user_frame_slot(self, image):
-        self.user_cam.setPixmap(QPixmap.fromImage(image))
+        self.user_cam_screen.setPixmap(QPixmap.fromImage(image))
 
     @pyqtSlot()
     def cam_not_open_slot(self):
-        self.user_cam.setText("카메라가 연결되어 있지 않습니다.")
+        self.user_cam_screen.setText("카메라가 연결되어 있지 않습니다.")
 
     @pyqtSlot(QImage)
     def update_video_frame_slot(self, image):
-        self.exercise_cam.setPixmap(QPixmap.fromImage(image))
+        self.exercise_screen.setPixmap(QPixmap.fromImage(image))
 
     @pyqtSlot(str, str, str, str)
     def show_dlg_slot(self, next_ex_name, passed_ex_level, passed_ex_score, passed_ex_name):
@@ -354,8 +354,9 @@ class Window(QMainWindow, form_class):
             self.score_list.append(float(last_score))
             self.counter += 1
             self.exit_dlg_window.addText(last_exercise, last_score)
-            self.exit_dlg_window.set_exit_text()
             self.exit_dlg_window.set_result_score(round((sum(self.score_list)/self.counter), 2))
+            
+        self.exit_dlg_window.set_exit_text()
         self.exit_dlg_window.show()
 
     # @pyqtSlot()

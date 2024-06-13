@@ -144,7 +144,7 @@ color:&quot;white&quot;;</string>
     <set>Qt::AlignCenter</set>
    </property>
   </widget>
-  <widget class="QLabel" name="exercise_cam">
+  <widget class="QLabel" name="exercise_screen">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -172,7 +172,7 @@ color:&quot;white&quot;;</string>
     <set>Qt::AlignCenter</set>
    </property>
   </widget>
-  <widget class="QLabel" name="user_cam">
+  <widget class="QLabel" name="user_cam_screen">
    <property name="geometry">
     <rect>
      <x>650</x>
