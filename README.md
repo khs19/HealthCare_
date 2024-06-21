@@ -10,7 +10,7 @@
 - 기간
     - 2022.03 ~ 2022.11
 - 기술 스택
-    - Python, PyQt5, OpenCV, mediapipe, dinamic time warping
+    - Python, PyQt5, OpenCV, mediapipe, dynamic time warping
 - 주요 특징
     - 동작 영상과 사용자의 동작을 비교해 실시간으로 점수 측정
 
